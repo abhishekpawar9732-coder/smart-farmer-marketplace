@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
@@ -19,13 +19,11 @@ public class ProductController {
         this.productRepository = productRepository;
     }
 
-    // GET - Get all products
     @GetMapping
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
 
-    // GET - Get product by ID
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable Long id) {
         return productRepository.findById(id)
@@ -33,13 +31,11 @@ public class ProductController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // POST - Add product
     @PostMapping
     public Product addProduct(@RequestBody Product product) {
         return productRepository.save(product);
     }
 
-    // PUT - Update product
     @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(
             @PathVariable Long id,
@@ -60,7 +56,6 @@ public class ProductController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // DELETE - Delete product
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
 
