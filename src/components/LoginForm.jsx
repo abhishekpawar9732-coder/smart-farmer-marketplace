@@ -9,7 +9,7 @@ function LoginForm() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    role: "Customer"
+    role: "Customer",
   });
 
   const [errors, setErrors] = useState({});
@@ -25,12 +25,12 @@ function LoginForm() {
 
     setFormData((current) => ({
       ...current,
-      [name]: value
+      [name]: value,
     }));
 
     setErrors((current) => ({
       ...current,
-      [name]: ""
+      [name]: "",
     }));
   };
 
@@ -40,8 +40,7 @@ function LoginForm() {
     const nextErrors = {};
 
     if (formData.name.trim().length < 3) {
-      nextErrors.name =
-        "Name must contain at least 3 characters.";
+      nextErrors.name = "Name must contain at least 3 characters.";
     }
 
     if (
@@ -49,8 +48,7 @@ function LoginForm() {
         formData.email.trim()
       )
     ) {
-      nextErrors.email =
-        "Please enter a valid email address.";
+      nextErrors.email = "Please enter a valid email address.";
     }
 
     if (Object.keys(nextErrors).length > 0) {
@@ -61,7 +59,7 @@ function LoginForm() {
     const loggedInUser = {
       name: formData.name.trim(),
       email: formData.email.trim(),
-      role: formData.role
+      role: formData.role,
     };
 
     login(loggedInUser);
@@ -70,18 +68,24 @@ function LoginForm() {
 
   if (user) {
     return (
-      <main className="auth-page">
-        <div className="auth-card">
-          <span className="auth-icon">✓</span>
-          <span className="eyebrow">ACCOUNT</span>
+      <section className="login-screen">
+        <div className="login-panel logged-panel">
+          <div className="login-logo">✓</div>
+
+          <span className="login-badge">
+            ACCOUNT ACTIVE
+          </span>
+
           <h1>You're already logged in</h1>
-          <p>
-            Welcome back, {user.name}. Your active role is{" "}
+
+          <p className="login-description">
+            Welcome back, <strong>{user.name}</strong>.
+            Your active role is{" "}
             <strong>{user.role}</strong>.
           </p>
 
           <button
-            className="primary-button full-width"
+            className="login-primary"
             onClick={() =>
               navigate(dashboardPath(user.role))
             }
@@ -90,94 +94,179 @@ function LoginForm() {
           </button>
 
           <button
-            className="text-button"
+            className="login-text-button"
             onClick={logout}
           >
             Sign out
           </button>
         </div>
-      </main>
+      </section>
     );
   }
 
   return (
-    <main className="auth-page">
-      <div className="auth-card">
-        <div className="auth-brand">🌾</div>
+    <section className="login-screen">
+      <div className="login-layout">
 
-        <span className="eyebrow">SMART FARMER MARKETPLACE</span>
+        <div className="login-info">
+          <div className="login-info-logo">🌾</div>
 
-        <h1>Welcome back</h1>
+          <span className="login-info-badge">
+            AGRICULTURE + TECHNOLOGY
+          </span>
 
-        <p>
-          Choose your marketplace role to continue.
-        </p>
+          <h1>
+            Welcome to the
+            <span> Smart Farmer Marketplace</span>
+          </h1>
 
-        <form onSubmit={handleSubmit}>
-          <label>
-            Full Name
-            <input
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Enter your full name"
-            />
-          </label>
+          <p>
+            Connect farmers directly with customers,
+            discover fresh agricultural products and
+            experience transparent pricing.
+          </p>
 
-          {errors.name && (
-            <p className="error">{errors.name}</p>
-          )}
+          <div className="login-features">
+            <div>
+              <span>🌱</span>
+              <div>
+                <strong>Direct Marketplace</strong>
+                <small>
+                  Farmer-to-customer selling without unnecessary intermediaries.
+                </small>
+              </div>
+            </div>
 
-          <label>
-            Email Address
-            <input
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="you@example.com"
-            />
-          </label>
+            <div>
+              <span>📦</span>
+              <div>
+                <strong>Order Tracking</strong>
+                <small>
+                  Follow orders from placement to delivery.
+                </small>
+              </div>
+            </div>
 
-          {errors.email && (
-            <p className="error">{errors.email}</p>
-          )}
+            <div>
+              <span>🌾</span>
+              <div>
+                <strong>Seasonal Crop Matching</strong>
+                <small>
+                  Discover crops according to the season.
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          <label>
-            Marketplace Role
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-            >
-              <option value="Customer">
-                Customer
-              </option>
-              <option value="Farmer">
-                Farmer
-              </option>
-              <option value="Admin">
-                Admin
-              </option>
-            </select>
-          </label>
+        <div className="login-panel">
+          <div className="login-panel-top">
+            <div className="login-logo">🌾</div>
 
-          <button
-            className="primary-button full-width"
-            type="submit"
+            <div>
+              <span className="login-badge">
+                SMART FARMER MARKETPLACE
+              </span>
+              <h2>Welcome back</h2>
+              <p>
+                Choose your marketplace role to continue.
+              </p>
+            </div>
+          </div>
+
+          <form
+            className="login-form"
+            onSubmit={handleSubmit}
           >
-            Continue to Marketplace
-          </button>
-        </form>
+            <div className="login-field">
+              <label htmlFor="name">
+                Full Name
+              </label>
 
-        <p className="auth-note">
-          Demo role-based login for the current Exp4
-          frontend. Persistent authentication can be
-          added with the backend before final production
-          deployment.
-        </p>
+              <input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Enter your full name"
+                autoComplete="name"
+              />
+
+              {errors.name && (
+                <span className="login-error">
+                  {errors.name}
+                </span>
+              )}
+            </div>
+
+            <div className="login-field">
+              <label htmlFor="email">
+                Email Address
+              </label>
+
+              <input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                autoComplete="email"
+              />
+
+              {errors.email && (
+                <span className="login-error">
+                  {errors.email}
+                </span>
+              )}
+            </div>
+
+            <div className="login-field">
+              <label htmlFor="role">
+                Marketplace Role
+              </label>
+
+              <select
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+              >
+                <option value="Customer">
+                  Customer
+                </option>
+
+                <option value="Farmer">
+                  Farmer
+                </option>
+
+                <option value="Admin">
+                  Admin
+                </option>
+              </select>
+            </div>
+
+            <button
+              className="login-primary"
+              type="submit"
+            >
+              Continue to Marketplace
+              <span>→</span>
+            </button>
+          </form>
+
+          <div className="login-note">
+            <span>ℹ</span>
+            <p>
+              Demo role-based login for the current Exp4
+              frontend. Authentication can be connected
+              to the backend later.
+            </p>
+          </div>
+        </div>
+
       </div>
-    </main>
+    </section>
   );
 }
 
