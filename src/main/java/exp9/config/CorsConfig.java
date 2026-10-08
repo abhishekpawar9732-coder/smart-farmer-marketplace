@@ -10,7 +10,10 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:5173")
+                .allowedOrigins(
+                        "http://localhost:5173",
+                        "https://smart-farmer-marketplace-frontendd.onrender.com"
+                )
                 .allowedMethods(
                         "GET",
                         "POST",
@@ -19,6 +22,7 @@ public class CorsConfig implements WebMvcConfigurer {
                         "PATCH",
                         "OPTIONS"
                 )
-                .allowedHeaders("*");
+                .allowedHeaders("*")
+                .allowCredentials(false);
     }
 }

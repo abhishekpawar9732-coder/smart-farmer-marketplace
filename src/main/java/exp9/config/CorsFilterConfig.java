@@ -16,7 +16,10 @@ public class CorsFilterConfig {
 
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "https://smart-farmer-marketplace-frontendd.onrender.com"
+        ));
 
         config.setAllowedMethods(List.of(
                 "GET",
