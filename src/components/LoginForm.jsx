@@ -1,272 +1,170 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMarketplace } from "../context/MarketplaceContext";
+import "./LoginForm.css";
 
 function LoginForm() {
-  const { user, login, logout } = useMarketplace();
+  const { user, login } = useMarketplace();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    role: "Customer",
-  });
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("Customer");
 
-  const [errors, setErrors] = useState({});
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-  const dashboardPath = (role) => {
-    if (role === "Farmer") return "/farmer";
-    if (role === "Admin") return "/admin";
-    return "/customer";
-  };
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-
-    setFormData((current) => ({
-      ...current,
-      [name]: value,
-    }));
-
-    setErrors((current) => ({
-      ...current,
-      [name]: "",
-    }));
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-    const nextErrors = {};
-
-    if (formData.name.trim().length < 3) {
-      nextErrors.name = "Name must contain at least 3 characters.";
-    }
-
-    if (
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-        formData.email.trim()
-      )
-    ) {
-      nextErrors.email = "Please enter a valid email address.";
-    }
-
-    if (Object.keys(nextErrors).length > 0) {
-      setErrors(nextErrors);
+    if (!name.trim() || !email.trim()) {
+      alert("Please enter your name and email.");
       return;
     }
 
-    const loggedInUser = {
-      name: formData.name.trim(),
-      email: formData.email.trim(),
-      role: formData.role,
+    const loggedUser = {
+      name: name.trim(),
+      email: email.trim(),
+      role,
     };
 
-    login(loggedInUser);
-    navigate(dashboardPath(formData.role));
+    login(loggedUser);
+
+    if (role === "Farmer") {
+      navigate("/farmer");
+    } else if (role === "Admin") {
+      navigate("/admin");
+    } else {
+      navigate("/customer");
+    }
   };
 
   if (user) {
     return (
-      <section className="login-screen">
-        <div className="login-panel logged-panel">
-          <div className="login-logo">✓</div>
+      <div className="login-page">
+        <div className="login-card logged-in">
+          <div className="login-icon">🌾</div>
+          <span className="login-label">SMART FARMER MARKETPLACE</span>
 
-          <span className="login-badge">
-            ACCOUNT ACTIVE
-          </span>
+          <h1>Welcome back</h1>
 
-          <h1>You're already logged in</h1>
-
-          <p className="login-description">
-            Welcome back, <strong>{user.name}</strong>.
-            Your active role is{" "}
-            <strong>{user.role}</strong>.
+          <p>
+            You are logged in as <strong>{user.role}</strong>.
           </p>
 
           <button
-            className="login-primary"
-            onClick={() =>
-              navigate(dashboardPath(user.role))
-            }
+            onClick={() => {
+              if (user.role === "Farmer") navigate("/farmer");
+              else if (user.role === "Admin") navigate("/admin");
+              else navigate("/customer");
+            }}
           >
-            Open Dashboard
-          </button>
-
-          <button
-            className="login-text-button"
-            onClick={logout}
-          >
-            Sign out
+            Open Dashboard →
           </button>
         </div>
-      </section>
+      </div>
     );
   }
 
   return (
-    <section className="login-screen">
-      <div className="login-layout">
+    <div className="login-page">
+      <div className="login-container">
 
-        <div className="login-info">
-          <div className="login-info-logo">🌾</div>
+        <div className="login-left">
+          <div className="brand-icon">🌾</div>
 
-          <span className="login-info-badge">
+          <span className="login-label">
             AGRICULTURE + TECHNOLOGY
           </span>
 
           <h1>
-            Welcome to the
-            <span> Smart Farmer Marketplace</span>
+            Smart Farmer
+            <span>Marketplace</span>
           </h1>
 
           <p>
-            Connect farmers directly with customers,
-            discover fresh agricultural products and
-            experience transparent pricing.
+            A direct farmer-to-customer marketplace
+            that makes agricultural products easier
+            to discover, buy and sell.
           </p>
 
-          <div className="login-features">
+          <div className="features">
             <div>
-              <span>🌱</span>
-              <div>
+              <b>🌱</b>
+              <section>
                 <strong>Direct Marketplace</strong>
-                <small>
-                  Farmer-to-customer selling without unnecessary intermediaries.
-                </small>
-              </div>
+                <small>Farmer-to-customer selling</small>
+              </section>
             </div>
 
             <div>
-              <span>📦</span>
-              <div>
+              <b>📦</b>
+              <section>
                 <strong>Order Tracking</strong>
-                <small>
-                  Follow orders from placement to delivery.
-                </small>
-              </div>
+                <small>Track orders from start to delivery</small>
+              </section>
             </div>
 
             <div>
-              <span>🌾</span>
-              <div>
+              <b>🌾</b>
+              <section>
                 <strong>Seasonal Crop Matching</strong>
-                <small>
-                  Discover crops according to the season.
-                </small>
-              </div>
+                <small>Find crops according to the season</small>
+              </section>
             </div>
           </div>
         </div>
 
-        <div className="login-panel">
-          <div className="login-panel-top">
-            <div className="login-logo">🌾</div>
+        <div className="login-card">
+          <div className="card-icon">🌾</div>
 
-            <div>
-              <span className="login-badge">
-                SMART FARMER MARKETPLACE
-              </span>
-              <h2>Welcome back</h2>
-              <p>
-                Choose your marketplace role to continue.
-              </p>
-            </div>
-          </div>
+          <span className="login-label">
+            SMART FARMER MARKETPLACE
+          </span>
 
-          <form
-            className="login-form"
-            onSubmit={handleSubmit}
-          >
-            <div className="login-field">
-              <label htmlFor="name">
-                Full Name
-              </label>
+          <h2>Welcome back</h2>
 
-              <input
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Enter your full name"
-                autoComplete="name"
-              />
+          <p className="card-subtitle">
+            Choose your marketplace role to continue.
+          </p>
 
-              {errors.name && (
-                <span className="login-error">
-                  {errors.name}
-                </span>
-              )}
-            </div>
+          <form onSubmit={handleSubmit}>
 
-            <div className="login-field">
-              <label htmlFor="email">
-                Email Address
-              </label>
+            <label>Full Name</label>
+            <input
+              type="text"
+              placeholder="Enter your full name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
 
-              <input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="you@example.com"
-                autoComplete="email"
-              />
+            <label>Email Address</label>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
 
-              {errors.email && (
-                <span className="login-error">
-                  {errors.email}
-                </span>
-              )}
-            </div>
-
-            <div className="login-field">
-              <label htmlFor="role">
-                Marketplace Role
-              </label>
-
-              <select
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-              >
-                <option value="Customer">
-                  Customer
-                </option>
-
-                <option value="Farmer">
-                  Farmer
-                </option>
-
-                <option value="Admin">
-                  Admin
-                </option>
-              </select>
-            </div>
-
-            <button
-              className="login-primary"
-              type="submit"
+            <label>Marketplace Role</label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
             >
-              Continue to Marketplace
-              <span>→</span>
+              <option value="Customer">Customer</option>
+              <option value="Farmer">Farmer</option>
+              <option value="Admin">Admin</option>
+            </select>
+
+            <button type="submit">
+              Continue to Marketplace →
             </button>
           </form>
 
           <div className="login-note">
-            <span>ℹ</span>
-            <p>
-              Demo role-based login for the current Exp4
-              frontend. Authentication can be connected
-              to the backend later.
-            </p>
+            
           </div>
         </div>
 
       </div>
-    </section>
+    </div>
   );
 }
 
