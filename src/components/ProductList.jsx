@@ -11,7 +11,6 @@ function ProductList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Filters
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [season, setSeason] = useState("All");
@@ -30,30 +29,22 @@ function ProductList() {
       });
 
       if (!response.ok) {
-        throw new Error(
-          `Server returned ${response.status}`
-        );
+        throw new Error(`Server returned ${response.status}`);
       }
 
       const data = await response.json();
 
-      console.log(
-        "CUSTOMER PRODUCTS:",
-        data
-      );
+      console.log("CUSTOMER PRODUCTS:", data);
 
-      setProducts(
-        Array.isArray(data) ? data : []
-      );
-    } catch (error) {
-      console.error(
-        "Error loading products:",
-        error
-      );
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid products response");
+      }
 
-      setError(
-        "Unable to load products. Please try again."
-      );
+      setProducts(data);
+    } catch (err) {
+      console.error("Error loading products:", err);
+      setProducts([]);
+      setError("Unable to load products. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -63,7 +54,6 @@ function ProductList() {
     loadProducts();
   }, []);
 
-
   // ================= FILTER + SORT =================
 
   const filteredProducts = useMemo(() => {
@@ -71,14 +61,13 @@ function ProductList() {
 
     // SEARCH
     if (search.trim()) {
-      const searchText =
-        search.trim().toLowerCase();
+      const searchText = search.trim().toLowerCase();
 
       result = result.filter((product) =>
         String(
           product.name ||
-          product.productName ||
-          ""
+            product.productName ||
+            ""
         )
           .toLowerCase()
           .includes(searchText)
@@ -89,8 +78,7 @@ function ProductList() {
     if (category !== "All") {
       result = result.filter(
         (product) =>
-          String(product.category || "")
-            .toLowerCase() ===
+          String(product.category || "").toLowerCase() ===
           category.toLowerCase()
       );
     }
@@ -99,22 +87,19 @@ function ProductList() {
     if (season !== "All") {
       result = result.filter(
         (product) =>
-          String(product.season || "")
-            .toLowerCase() ===
+          String(product.season || "").toLowerCase() ===
           season.toLowerCase()
       );
     }
 
     // MAX PRICE
     if (maxPrice !== "") {
-      const priceLimit =
-        Number(maxPrice);
+      const priceLimit = Number(maxPrice);
 
       if (!Number.isNaN(priceLimit)) {
         result = result.filter(
           (product) =>
-            Number(product.price || 0) <=
-            priceLimit
+            Number(product.price || 0) <= priceLimit
         );
       }
     }
@@ -140,13 +125,13 @@ function ProductList() {
       result.sort((a, b) =>
         String(
           a.name ||
-          a.productName ||
-          ""
+            a.productName ||
+            ""
         ).localeCompare(
           String(
             b.name ||
-            b.productName ||
-            ""
+              b.productName ||
+              ""
           )
         )
       );
@@ -162,7 +147,6 @@ function ProductList() {
     sort,
   ]);
 
-
   // ================= RESET FILTERS =================
 
   const resetFilters = () => {
@@ -173,43 +157,37 @@ function ProductList() {
     setSort("default");
   };
 
-
   // ================= ADD TO CART =================
 
   const handleAddToCart = (product) => {
     addToCart(product);
   };
 
+  // ================= RENDER =================
 
   return (
     <section className="products-page">
 
-      {/* ================= HEADER ================= */}
+      {/* HEADER */}
 
       <div className="products-header">
-
         <span className="section-badge">
           🌾 Direct Farmer Marketplace
         </span>
 
-        <h1>
-          Agricultural Products
-        </h1>
+        <h1>Agricultural Products</h1>
 
         <p>
           Buy fresh agricultural products
           directly from farmers.
         </p>
-
       </div>
 
-
-      {/* ================= FILTERS ================= */}
+      {/* FILTERS */}
 
       <div className="product-filters">
 
         <div className="filter-group">
-
           <label>
             🔎 Search Product
           </label>
@@ -222,12 +200,9 @@ function ProductList() {
               setSearch(e.target.value)
             }
           />
-
         </div>
 
-
         <div className="filter-group">
-
           <label>
             🥕 Category
           </label>
@@ -238,7 +213,6 @@ function ProductList() {
               setCategory(e.target.value)
             }
           >
-
             <option value="All">
               All Categories
             </option>
@@ -266,14 +240,10 @@ function ProductList() {
             <option value="Other">
               Other
             </option>
-
           </select>
-
         </div>
 
-
         <div className="filter-group">
-
           <label>
             🌦️ Season
           </label>
@@ -284,7 +254,6 @@ function ProductList() {
               setSeason(e.target.value)
             }
           >
-
             <option value="All">
               All Seasons
             </option>
@@ -304,14 +273,10 @@ function ProductList() {
             <option value="All Season">
               All Season
             </option>
-
           </select>
-
         </div>
 
-
         <div className="filter-group">
-
           <label>
             💰 Maximum Price
           </label>
@@ -325,12 +290,9 @@ function ProductList() {
               setMaxPrice(e.target.value)
             }
           />
-
         </div>
 
-
         <div className="filter-group">
-
           <label>
             ↕️ Sort
           </label>
@@ -341,7 +303,6 @@ function ProductList() {
               setSort(e.target.value)
             }
           >
-
             <option value="default">
               Default
             </option>
@@ -357,11 +318,8 @@ function ProductList() {
             <option value="name">
               Name: A to Z
             </option>
-
           </select>
-
         </div>
-
 
         <button
           type="button"
@@ -370,23 +328,18 @@ function ProductList() {
         >
           Reset Filters
         </button>
-
       </div>
 
-
-      {/* ================= RESULTS INFO ================= */}
+      {/* RESULT COUNT */}
 
       <div className="products-result-info">
-
         <strong>
           {filteredProducts.length}
         </strong>{" "}
         product(s) found
-
       </div>
 
-
-      {/* ================= LOADING ================= */}
+      {/* LOADING */}
 
       {loading && (
         <div className="loading-message">
@@ -394,32 +347,23 @@ function ProductList() {
         </div>
       )}
 
-
-      {/* ================= ERROR ================= */}
+      {/* ERROR */}
 
       {!loading && error && (
         <div className="error-message">
+          <p>❌ {error}</p>
 
-          <p>
-            ❌ {error}
-          </p>
-
-          <button
-            onClick={loadProducts}
-          >
+          <button onClick={loadProducts}>
             Retry
           </button>
-
         </div>
       )}
 
-
-      {/* ================= NO PRODUCTS ================= */}
+      {/* NO PRODUCTS */}
 
       {!loading &&
         !error &&
         filteredProducts.length === 0 && (
-
           <div className="empty-products">
 
             <div className="empty-icon">
@@ -444,13 +388,11 @@ function ProductList() {
           </div>
         )}
 
-
-      {/* ================= PRODUCT GRID ================= */}
+      {/* PRODUCT GRID */}
 
       {!loading &&
         !error &&
         filteredProducts.length > 0 && (
-
           <div className="product-grid">
 
             {filteredProducts.map(
@@ -465,9 +407,25 @@ function ProductList() {
                   Number(product.price || 0);
 
                 const quantity =
-                  Number(
-                    product.quantity || 0
-                  );
+                  Number(product.quantity || 0);
+
+                let icon = "🥬";
+
+                if (product.category === "Fruit") {
+                  icon = "🍎";
+                } else if (
+                  product.category === "Grain"
+                ) {
+                  icon = "🌾";
+                } else if (
+                  product.category === "Pulse"
+                ) {
+                  icon = "🫘";
+                } else if (
+                  product.category === "Spice"
+                ) {
+                  icon = "🌶️";
+                }
 
                 return (
                   <article
@@ -475,50 +433,27 @@ function ProductList() {
                     key={product.id}
                   >
 
-                    {/* IMAGE / ICON */}
+                    {/* IMAGE */}
 
                     <div className="product-image">
-
-                      <span>
-                        {product.category ===
-                        "Fruit"
-                          ? "🍎"
-                          : product.category ===
-                            "Grain"
-                          ? "🌾"
-                          : product.category ===
-                            "Pulse"
-                          ? "🫘"
-                          : product.category ===
-                            "Spice"
-                          ? "🌶️"
-                          : "🥬"}
-                      </span>
-
+                      <span>{icon}</span>
                     </div>
 
-
-                    {/* PRODUCT DETAILS */}
+                    {/* DETAILS */}
 
                     <div className="product-content">
 
                       <span className="product-category">
-
                         {product.category ||
                           "Agricultural Product"}
-
                         {" · "}
-
                         {product.season ||
                           "All Season"}
-
                       </span>
-
 
                       <h2>
                         {productName}
                       </h2>
-
 
                       <p className="farmer-name">
                         🧑‍🌾 Farmer:{" "}
@@ -527,14 +462,10 @@ function ProductList() {
                           "Local Farmer"}
                       </p>
 
-
                       <p className="product-stock">
-
                         📦 Available:{" "}
                         {quantity} kg
-
                       </p>
-
 
                       <div className="product-bottom">
 
@@ -542,17 +473,12 @@ function ProductList() {
                           ₹{price} / kg
                         </strong>
 
-
                         <button
                           type="button"
                           onClick={() =>
-                            handleAddToCart(
-                              product
-                            )
+                            handleAddToCart(product)
                           }
-                          disabled={
-                            quantity <= 0
-                          }
+                          disabled={quantity <= 0}
                         >
                           {quantity > 0
                             ? "🛒 Add to Cart"
@@ -560,9 +486,7 @@ function ProductList() {
                         </button>
 
                       </div>
-
                     </div>
-
                   </article>
                 );
               }
