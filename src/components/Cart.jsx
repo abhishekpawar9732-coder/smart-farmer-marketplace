@@ -6,7 +6,7 @@ function Cart() {
     cart,
     cartTotal,
     removeFromCart,
-    clearCart
+    clearCart,
   } = useMarketplace();
 
   return (
@@ -25,14 +25,16 @@ function Cart() {
       {cart.length === 0 ? (
         <div className="state-card">
           <span className="empty-icon">🛒</span>
+
           <h3>Your cart is empty</h3>
+
           <p>
-            Explore products and add fresh crops to your
-            cart.
+            Explore products and add fresh crops to your cart.
           </p>
+
           <Link
             className="primary-button"
-            to="/customer/products"
+            to="/products"
           >
             Browse Products
           </Link>
@@ -43,28 +45,34 @@ function Cart() {
             {cart.map((product, index) => (
               <article
                 className="cart-product"
-                key={`${product.id}-${index}`}
+                key={`${product.id ?? product.name}-${index}`}
               >
                 <div className="cart-product-icon">
                   🌾
                 </div>
 
                 <div className="cart-product-info">
-                  <span>{product.category}</span>
-                  <h3>{product.name}</h3>
+                  <span>
+                    {product.category || "Agricultural Product"}
+                  </span>
+
+                  <h3>
+                    {product.name || product.productName}
+                  </h3>
+
                   <p>
-                    Season: {product.season}
+                    Season: {product.season || "All Season"}
                   </p>
+
                   <strong>
-                    ₹{product.price} / kg
+                    ₹{Number(product.price || 0)} / kg
                   </strong>
                 </div>
 
                 <button
+                  type="button"
                   className="danger-button"
-                  onClick={() =>
-                    removeFromCart(index)
-                  }
+                  onClick={() => removeFromCart(index)}
                 >
                   Remove
                 </button>
@@ -74,6 +82,7 @@ function Cart() {
 
           <aside className="cart-summary">
             <span className="eyebrow">SUMMARY</span>
+
             <h2>Order Total</h2>
 
             <div className="summary-row">
@@ -88,17 +97,25 @@ function Cart() {
 
             <Link
               className="primary-button full-width"
-              to="/customer/orders"
+              to="/orders"
             >
               Proceed to Checkout
             </Link>
 
             <button
+              type="button"
               className="text-button"
               onClick={clearCart}
             >
               Clear Cart
             </button>
+
+            <Link
+              className="text-button"
+              to="/products"
+            >
+              Continue Shopping
+            </Link>
           </aside>
         </div>
       )}
