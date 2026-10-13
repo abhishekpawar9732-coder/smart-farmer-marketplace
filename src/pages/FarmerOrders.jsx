@@ -1,18 +1,38 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const API_URL =
   "https://smart-farmer-marketplace-1.onrender.com/api/orders";
+
+const ORDER_STATUSES = [
+  "Pending",
+  "Accepted",
+  "Shipped",
+  "Delivered",
+];
 
 function FarmerOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [updatingOrders, setUpdatingOrders] = useState([]);
+  const [successMessage, setSuccessMessage] = useState("");
 
-  const loadOrders = async () => {
-    try {
+  // Prevent overlapping order fetches.
+  const loadingRef = useRef(false);
+
+  const loadOrders = useCallback(async (showLoading = true) => {
+    if (loadingRef.current) return;
+
+    loadingRef.current = true;
+
+    if (showLoading) {
       setLoading(true);
-      setError("");
+    }
 
+    setError("");
+    setSuccessMessage("");
+
+    try {
       const response = await fetch(API_URL, {
         cache: "no-store",
       });
@@ -23,46 +43,64 @@ function FarmerOrders() {
 
       const data = await response.json();
 
-      console.log("ALL BACKEND ORDERS:", data);
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid orders response from server.");
+      }
 
-      setOrders(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Error loading farmer orders:", error);
-      setError("Unable to load customer orders.");
+      setOrders(data);
+    } catch (err) {
+      console.error("Error loading farmer orders:", err);
+      setError("Unable to load customer orders. Please try again.");
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
-  };
+  }, []);
 
+  // Load orders once when the page opens.
+  // No automatic polling or repeated page refresh.
   useEffect(() => {
     loadOrders();
 
-    const interval = setInterval(() => {
-      loadOrders();
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      // No interval or timeout to clean up.
+    };
+  }, [loadOrders]);
 
   const updateStatus = async (orderId, newStatus) => {
+    const currentOrder = orders.find(
+      (order) => order.id === orderId
+    );
+
+    if (!currentOrder) {
+      setError("Order not found.");
+      return;
+    }
+
+    if (!ORDER_STATUSES.includes(newStatus)) {
+      setError("Invalid order status.");
+      return;
+    }
+
+    if (
+      currentOrder.status === newStatus ||
+      updatingOrders.includes(orderId)
+    ) {
+      return;
+    }
+
+    setUpdatingOrders((current) => [...current, orderId]);
+    setError("");
+    setSuccessMessage("");
+
     try {
-      const currentOrder = orders.find(
-        (order) => order.id === orderId
-      );
-
-      if (!currentOrder) return;
-
       const updatedOrder = {
-        customer: currentOrder.customer,
-        total: currentOrder.total,
-        address: currentOrder.address,
-        paymentMode: currentOrder.paymentMode,
+        ...currentOrder,
         status: newStatus,
-        date: currentOrder.date,
       };
 
       const response = await fetch(
-        `${API_URL}/${orderId}`,
+        `${API_URL}/${encodeURIComponent(orderId)}`,
         {
           method: "PUT",
           headers: {
@@ -73,22 +111,40 @@ function FarmerOrders() {
       );
 
       if (!response.ok) {
-        throw new Error(
-          `Server returned ${response.status}`
-        );
+        throw new Error(`Server returned ${response.status}`);
       }
 
-      const savedOrder = await response.json();
+      const responseText = await response.text();
+
+      const savedOrder = responseText
+        ? JSON.parse(responseText)
+        : updatedOrder;
 
       setOrders((currentOrders) =>
         currentOrders.map((order) =>
-          order.id === orderId ? savedOrder : order
+          String(order.id) === String(orderId)
+            ? { ...order, ...savedOrder, status: newStatus }
+            : order
         )
       );
-    } catch (error) {
-      console.error("Error updating order:", error);
 
-      alert("Unable to update order status.");
+      setSuccessMessage(
+        `Order #${orderId} updated to ${newStatus}.`
+      );
+    } catch (err) {
+      console.error("Error updating order:", err);
+      setError(
+        `Unable to update order #${orderId}. Please try again.`
+      );
+
+      // Reload server data to show the actual saved status.
+      loadOrders(false);
+    } finally {
+      setUpdatingOrders((current) =>
+        current.filter(
+          (id) => String(id) !== String(orderId)
+        )
+      );
     }
   };
 
@@ -97,36 +153,54 @@ function FarmerOrders() {
       <h2>📦 Manage Customer Orders</h2>
 
       <p>
-        View and manage orders placed by customers.
+        View customer orders and manage their delivery status.
       </p>
 
-      <button onClick={loadOrders}>
-        🔄 Refresh Orders
+      <button
+        type="button"
+        onClick={() => loadOrders()}
+        disabled={loading}
+      >
+        {loading ? "Loading Orders..." : "🔄 Refresh Orders"}
       </button>
 
-      {loading && <p>Loading orders...</p>}
-
-      {!loading && error && (
-        <div>
+      {error && (
+        <div className="error-message" role="alert">
           <p>{error}</p>
 
-          <button onClick={loadOrders}>
-            Retry
-          </button>
+          {!loading && (
+            <button
+              type="button"
+              onClick={() => loadOrders()}
+            >
+              Retry
+            </button>
+          )}
         </div>
       )}
 
-      {!loading &&
-        !error &&
-        orders.length === 0 && (
-          <p>No customer orders found.</p>
-        )}
+      {successMessage && (
+        <p className="success-message" role="status">
+          ✅ {successMessage}
+        </p>
+      )}
 
-      {!loading &&
-        !error &&
-        orders.length > 0 && (
-          <div className="order-list">
-            {orders.map((order) => (
+      {loading && (
+        <p>Loading customer orders...</p>
+      )}
+
+      {!loading && !error && orders.length === 0 && (
+        <p>No customer orders found.</p>
+      )}
+
+      {!loading && orders.length > 0 && (
+        <div className="order-list">
+          {orders.map((order) => {
+            const isUpdating = updatingOrders.some(
+              (id) => String(id) === String(order.id)
+            );
+
+            return (
               <div
                 className="order-card"
                 key={order.id}
@@ -135,111 +209,78 @@ function FarmerOrders() {
 
                 <p>
                   <strong>Customer:</strong>{" "}
-                  {order.customer}
+                  {order.customer || "Customer"}
                 </p>
 
                 <p>
                   <strong>Date:</strong>{" "}
-                  {order.date}
+                  {order.date || "N/A"}
                 </p>
 
                 <p>
                   <strong>Total:</strong>{" "}
-                  ₹{order.total}
+                  ₹{Number(order.total || 0).toFixed(2)}
                 </p>
 
                 <p>
                   <strong>Payment:</strong>{" "}
-                  {order.paymentMode}
+                  {order.paymentMode || "N/A"}
                 </p>
 
                 <p>
                   <strong>Delivery Address:</strong>{" "}
-                  {order.address}
+                  {order.address || "N/A"}
                 </p>
 
                 <p>
                   <strong>Current Status:</strong>{" "}
-                  {order.status}
+                  {order.status || "Pending"}
                 </p>
 
                 <h4>Order Status</h4>
 
                 <ol>
-                  <li
-                    className={
-                      order.status === "Pending"
-                        ? "active-status"
-                        : ""
-                    }
-                  >
-                    Pending
-                  </li>
-
-                  <li
-                    className={
-                      order.status === "Accepted"
-                        ? "active-status"
-                        : ""
-                    }
-                  >
-                    Accepted
-                  </li>
-
-                  <li
-                    className={
-                      order.status === "Shipped"
-                        ? "active-status"
-                        : ""
-                    }
-                  >
-                    Shipped
-                  </li>
-
-                  <li
-                    className={
-                      order.status === "Delivered"
-                        ? "active-status"
-                        : ""
-                    }
-                  >
-                    Delivered
-                  </li>
+                  {ORDER_STATUSES.map((status) => (
+                    <li
+                      key={status}
+                      className={
+                        order.status === status
+                          ? "active-status"
+                          : ""
+                      }
+                    >
+                      {status}
+                    </li>
+                  ))}
                 </ol>
 
-                <label>
+                <label htmlFor={`status-${order.id}`}>
                   Update Order Status
                 </label>
 
                 <select
-                  value={order.status}
-                  onChange={(e) =>
-                    updateStatus(
-                      order.id,
-                      e.target.value
-                    )
+                  id={`status-${order.id}`}
+                  value={order.status || "Pending"}
+                  disabled={isUpdating}
+                  onChange={(event) =>
+                    updateStatus(order.id, event.target.value)
                   }
                 >
-                  <option value="Pending">
-                    Pending
-                  </option>
-
-                  <option value="Accepted">
-                    Accepted
-                  </option>
-
-                  <option value="Shipped">
-                    Shipped
-                  </option>
-
-                  <option value="Delivered">
-                    Delivered
-                  </option>
+                  {ORDER_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
                 </select>
+
+                {isUpdating && (
+                  <p>Saving order status...</p>
+                )}
               </div>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }
