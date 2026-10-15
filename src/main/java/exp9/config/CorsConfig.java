@@ -12,7 +12,10 @@ public class CorsConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOrigins(
                         "http://localhost:5173",
-                        "https://smart-farmer-marketplace-frontendd.onrender.com"
+                        "https://smart-farmer-marketplace-frontendd.onrender.com",
+                        "https://localhost",
+                        "http://localhost",
+                        "capacitor://localhost"
                 )
                 .allowedMethods(
                         "GET",
