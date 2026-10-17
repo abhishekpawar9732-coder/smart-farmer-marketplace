@@ -18,12 +18,7 @@ public class CorsConfig implements WebMvcConfigurer {
                         "capacitor://localhost"
                 )
                 .allowedMethods(
-                        "GET",
-                        "POST",
-                        "PUT",
-                        "DELETE",
-                        "PATCH",
-                        "OPTIONS"
+                        "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
                 )
                 .allowedHeaders("*")
                 .allowCredentials(false);
